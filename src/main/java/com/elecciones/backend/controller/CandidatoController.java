@@ -1,44 +1,58 @@
 package com.elecciones.backend.controller;
 
-import com.elecciones.backend.model.Candidato;
-import com.elecciones.backend.service.CandidatoService;
+import com.elecciones.backend.dto.CandidatoDTO;
+import com.elecciones.backend.service.SupabaseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/data/candidates")
 public class CandidatoController {
 
-    private final CandidatoService service;
+    private final SupabaseService supabaseService;
+    private static final String TABLE = "candidatos";
 
-    public CandidatoController(CandidatoService service) {
-        this.service = service;
+    public CandidatoController(SupabaseService supabaseService) {
+        this.supabaseService = supabaseService;
     }
 
     @GetMapping
-    public List<Candidato> getAll() {
-        return service.getAll();
+    public List<CandidatoDTO> getAll() {
+        return supabaseService.getAll(TABLE, CandidatoDTO.class);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Candidato> getById(@PathVariable UUID id) {
-        return service.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CandidatoDTO> getById(@PathVariable String id) {
+        CandidatoDTO candidato = supabaseService.getById(TABLE, id, CandidatoDTO.class);
+        return candidato != null 
+            ? ResponseEntity.ok(candidato) 
+            : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/tipo/{tipoEleccion}")
+    public List<CandidatoDTO> getByTipoEleccion(@PathVariable String tipoEleccion) {
+        return supabaseService.getAllByFilter(
+            TABLE, 
+            "tipo_eleccion=eq." + tipoEleccion, 
+            CandidatoDTO.class
+        );
     }
 
     @PostMapping
-    public Candidato create(@RequestBody Candidato candidato) {
-        return service.save(candidato);
+    public CandidatoDTO create(@RequestBody CandidatoDTO candidato) {
+        return supabaseService.insert(TABLE, candidato, CandidatoDTO.class);
+    }
+
+    @PatchMapping("/{id}")
+    public CandidatoDTO update(@PathVariable String id, @RequestBody CandidatoDTO candidato) {
+        return supabaseService.update(TABLE, id, candidato, CandidatoDTO.class);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable UUID id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        supabaseService.delete(TABLE, id);
+        return ResponseEntity.noContent().build();
     }
-    
 }
-
