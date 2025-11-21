@@ -1,43 +1,72 @@
 package com.elecciones.backend.controller;
 
-import com.elecciones.backend.model.VotoRegional;
-import com.elecciones.backend.service.VotoRegionalService;
+import com.elecciones.backend.dto.VotoRegionalDTO;
+import com.elecciones.backend.service.SupabaseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/data/regional-votes")
-
 public class VotoRegionalController {
 
-    private final VotoRegionalService service;
+    private final SupabaseService supabaseService;
+    private static final String TABLE = "votos_regionales";
 
-    public VotoRegionalController(VotoRegionalService service) {
-        this.service = service;
+    public VotoRegionalController(SupabaseService supabaseService) {
+        this.supabaseService = supabaseService;
     }
 
     @GetMapping
-    public List<VotoRegional> getAll() {
-        return service.getAll();
+    public List<VotoRegionalDTO> getAll() {
+        return supabaseService.getAll(TABLE, VotoRegionalDTO.class);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VotoRegional> getById(@PathVariable UUID id) {
-        return service.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<VotoRegionalDTO> getById(@PathVariable String id) {
+        VotoRegionalDTO voto = supabaseService.getById(TABLE, id, VotoRegionalDTO.class);
+        return voto != null 
+            ? ResponseEntity.ok(voto) 
+            : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/dni/{dni}")
+    public ResponseEntity<VotoRegionalDTO> getByDni(@PathVariable String dni) {
+        VotoRegionalDTO voto = supabaseService.getVotoByDni(TABLE, dni, VotoRegionalDTO.class);
+        return voto != null 
+            ? ResponseEntity.ok(voto) 
+            : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/candidato/{candidatoId}")
+    public List<VotoRegionalDTO> getByCandidato(@PathVariable String candidatoId) {
+        return supabaseService.getVotosByCandidato(TABLE, candidatoId, VotoRegionalDTO.class);
+    }
+
+    @GetMapping("/ubicacion")
+    public List<VotoRegionalDTO> getByUbicacion(
+            @RequestParam String departamento,
+            @RequestParam(required = false) String provincia,
+            @RequestParam(required = false) String distrito) {
+        return supabaseService.getVotosByUbicacion(
+            TABLE, departamento, provincia, distrito, VotoRegionalDTO.class
+        );
     }
 
     @PostMapping
-    public VotoRegional create(@RequestBody VotoRegional voto) {
-        return service.save(voto);
+    public VotoRegionalDTO create(@RequestBody VotoRegionalDTO voto) {
+        return supabaseService.insert(TABLE, voto, VotoRegionalDTO.class);
+    }
+
+    @PatchMapping("/{id}")
+    public VotoRegionalDTO update(@PathVariable String id, @RequestBody VotoRegionalDTO voto) {
+        return supabaseService.update(TABLE, id, voto, VotoRegionalDTO.class);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable UUID id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        supabaseService.delete(TABLE, id);
+        return ResponseEntity.noContent().build();
     }
 }
