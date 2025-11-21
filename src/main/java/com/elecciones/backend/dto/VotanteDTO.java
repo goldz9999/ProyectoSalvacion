@@ -2,6 +2,7 @@ package com.elecciones.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
@@ -9,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)  // ← No envía campos null
 public class VotanteDTO {
     private String id;
     private String dni;
@@ -20,7 +22,8 @@ public class VotanteDTO {
     @JsonProperty("apellido_materno")
     private String apellidoMaterno;
     
-    @JsonProperty("nombre_completo")
+    // ← SOLO para lectura, nunca se envía en POST/PATCH
+    @JsonProperty(value = "nombre_completo", access = JsonProperty.Access.READ_ONLY)
     private String nombreCompleto;
     
     private String departamento;
@@ -41,9 +44,9 @@ public class VotanteDTO {
     private String email;
     private String estado;
     
-    @JsonProperty("created_at")
+    @JsonProperty(value = "created_at", access = JsonProperty.Access.READ_ONLY)
     private String createdAt;
     
-    @JsonProperty("updated_at")
+    @JsonProperty(value = "updated_at", access = JsonProperty.Access.READ_ONLY)
     private String updatedAt;
 }
