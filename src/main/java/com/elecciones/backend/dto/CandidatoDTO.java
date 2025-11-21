@@ -2,6 +2,7 @@ package com.elecciones.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 @Data
@@ -22,7 +23,10 @@ public class CandidatoDTO {
     @JsonProperty("image_url")
     private String imageUrl;
     
-    private String propuestas;
+    // ✅ JSONB se mapea como JsonNode (puede ser objeto, array o cualquier JSON)
+    private JsonNode propuestas;
+    
+    // ✅ TEXT se mapea como String
     private String experiencia;
     private String educacion;
     
